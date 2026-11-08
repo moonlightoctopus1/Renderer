@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Renderer</title>
+<link rel="shortcut icon" href="TemplateData/favicon.ico">
+<link rel="stylesheet" href="TemplateData/style.css">
+</head>
+<body>
+<div id="unity-container" class="unity-desktop">
+<div id="unity-fullscreen-container">
+<canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+<div id="unity-loading-container">
+<div id="unity-loading-bar">
+<div id="unity-logo"></div>
+<div id="unity-progress-bar-empty">
+<div id="unity-progress-bar-full"></div>
+</div>
+</div>
+</div>
+</div>
+<div id="unity-warning"> </div>
+<div id="unity-footer">
+<div id="unity-logo-title-footer"></div>
+<div id="unity-fullscreen-button"></div>
+<div id="unity-build-title">Renderer</div>
+</div>
+</div>
+<script>
+const cv = document.querySelector("#unity-canvas");
+const fs = document.querySelector("#unity-fullscreen-container");
+function banner(m, t) {
+  const w = document.querySelector("#unity-warning");
+  const vis = () => { w.style.display = w.children.length ? "block" : "none"; };
+  const d = document.createElement("div");
+  d.innerHTML = m;
+  w.appendChild(d);
+  if (t == "error") d.style = "background: red; padding: 10px;";
+  else {
+    if (t == "warning") d.style = "background: yellow; padding: 10px;";
+    setTimeout(() => { w.removeChild(d); vis(); }, 5000);
+  }
+  vis();
+}
+const b = "Build";
+const cfg = {
+  arguments: [],
+  dataUrl: b + "/Web.data",
+  frameworkUrl: b + "/Web.framework.js",
+  codeUrl: b + "/Web.wasm",
+  streamingAssetsUrl: "StreamingAssets",
+  fullscreenElementID: "unity-fullscreen-container",
+  companyName: "DefaultCompany",
+  productName: "Renderer",
+  productVersion: "1.0",
+  showBanner: banner
+};
+if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+  const mt = document.createElement("meta");
+  mt.name = "viewport";
+  mt.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
+  document.getElementsByTagName("head")[0].appendChild(mt);
+  document.querySelector("#unity-container").className = "unity-mobile";
+  cv.className = "unity-mobile";
+} else {
+  fs.style.width = "960px";
+  fs.style.height = "600px";
+}
+const s = document.createElement("script");
+s.src = b + "/Web.loader.js";
+s.onload = () => {
+  const lc = document.querySelector("#unity-loading-container");
+  const pb = document.querySelector("#unity-progress-bar-full");
+  createUnityInstance(cv, cfg, (p) => {
+    if (p < 1) {
+      lc.style.display = "block";
+      pb.style.width = 100 * p + "%";
+    } else {
+      lc.style.display = "none";
+    }
+  }).then((u) => {
+    document.querySelector("#unity-fullscreen-button").onclick = () => { u.SetFullscreen(1); };
+  }).catch((e) => { alert(e); });
+};
+document.body.appendChild(s);
+</script>
+</body>
+</html>
